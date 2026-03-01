@@ -49,12 +49,12 @@ class BrowserSession:
         """Initialize a BrowserSession.
 
         Args:
-            browser: Browser to extract cookies from (uses all browsers if None)
+            browser: Browser to extract cookies from (defaults to Arc)
             domain_filter: Optional domain to filter cookies by (e.g., 'example.com')
             user_agent: Optional custom user agent string
         """
         if browser is None:
-            self.browser = "default"
+            self.browser = "arc"
         elif isinstance(browser, str):
             self.browser = browser
         else:
@@ -68,12 +68,9 @@ class BrowserSession:
 
     def _get_cookies(self) -> list[Any]:
         """Extract cookies from the specified browser."""
-        if self.browser == "default":
-            getter = browser_cookie3.load
-        else:
-            getter = getattr(browser_cookie3, self.browser, None)
-            if getter is None:
-                raise ValueError(f"Browser '{self.browser}' is not supported by browser_cookie3")
+        getter = getattr(browser_cookie3, self.browser, None)
+        if getter is None:
+            raise ValueError(f"Browser '{self.browser}' is not supported by browser_cookie3")
 
         try:
             cookies = getter()

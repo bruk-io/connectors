@@ -1,0 +1,66 @@
+[project]
+name = "connectors"
+version = "0.1.0"
+description = "Unofficial API connectors SDK and CLI"
+requires-python = ">=3.14"
+dependencies = [
+    "click>=8.1.0",
+    "httpx>=0.28.0",
+    "browser-cookie3>=0.19.0",
+    "ccl-chromium-reader @ git+https://github.com/cclgroupltd/ccl_chromium_reader.git",
+]
+
+[[project.authors]]
+name = "Bruk Habtu"
+
+[project.license]
+text = "MIT"
+
+[project.scripts]
+connectors = "connectors.presentation.cli.commands:cli"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.9.0",
+    "mypy>=1.8.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "B", "C4", "UP"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = ["browser_cookie3", "ccl_chromium_reader", "ccl_chromium_reader.*"]
+ignore_missing_imports = true
+disallow_untyped_calls = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["connectors"]

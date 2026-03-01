@@ -1,0 +1,1 @@
+"""NYT Cooking domain types."""

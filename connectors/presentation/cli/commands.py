@@ -4,6 +4,7 @@ import json
 
 import click
 
+from connectors.browser_auth import BrowserSession
 from connectors.domain import operations
 
 
@@ -121,6 +122,65 @@ def get_recipe_bon_appetit(urls: tuple[str, ...]) -> None:
 
     for url in urls:
         click.echo(fetch_authenticated(url, domain="bonappetit.com"))
+
+
+@cli.group("linkedin")
+def linkedin() -> None:
+    """LinkedIn messaging commands."""
+    pass
+
+
+def _linkedin_session() -> BrowserSession:
+    """Create a reusable LinkedIn BrowserSession with CSRF and Voyager headers."""
+    session = BrowserSession(
+        domain_filter="linkedin.com",
+        csrf_cookie_name="JSESSIONID",
+    )
+    session.update_headers(
+        {
+            "Accept": "application/graphql",
+            "x-restli-protocol-version": "2.0.0",
+        }
+    )
+    return session
+
+
+@linkedin.command("list-conversations")
+def list_conversations() -> None:
+    """List LinkedIn conversations for the logged-in user."""
+    from connectors.domain.linkedin import (
+        ME_API_URL,
+        conversations_api_url,
+        extract_profile_urn,
+    )
+
+    session = _linkedin_session()
+
+    me_response = session.get(ME_API_URL)
+    me_response.raise_for_status()
+    profile_urn = extract_profile_urn(me_response.json())
+
+    response = session.get(conversations_api_url(profile_urn))
+    response.raise_for_status()
+    click.echo(response.text)
+
+
+@linkedin.command("get-messages")
+@click.argument("conversation_urn", required=True)
+def get_messages(conversation_urn: str) -> None:
+    """Fetch messages from a LinkedIn conversation.
+
+    CONVERSATION_URN is a full conversation URN, e.g.:
+    urn:li:msg_conversation:(urn:li:fsd_profile:ABC123,2-thread-id)
+    """
+    from connectors.domain.linkedin import messages_api_url, parse_conversation_urn
+
+    urn = parse_conversation_urn(conversation_urn)
+    session = _linkedin_session()
+
+    response = session.get(messages_api_url(urn))
+    response.raise_for_status()
+    click.echo(response.text)
 
 
 @cli.group("google-keep")
